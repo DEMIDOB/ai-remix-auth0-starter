@@ -66,7 +66,6 @@ A minimal starter project built with [Remix](https://remix.run/), showcasing how
 AUTH0_DOMAIN=your-tenant.auth0.com
 AUTH0_CLIENT_ID=your-client-id
 AUTH0_CLIENT_SECRET=your-client-secret
-AUTH0_CALLBACK_URL=http://localhost:3000/auth/callback
 APP_BASE_URL=http://localhost:3000
 SESSION_SECRET=a-very-secret-random-string
 ```
