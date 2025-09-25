@@ -68,6 +68,12 @@ AUTH0_CLIENT_ID=your-client-id
 AUTH0_CLIENT_SECRET=your-client-secret
 APP_BASE_URL=http://localhost:3000
 SESSION_SECRET=a-very-secret-random-string
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=root
+DB_NAME=remix_app
+SUPER_ADMIN_EMAIL=admin@example.com
 ```
 
 > ⚠️ Replace values above with your actual Auth0 app credentials.
@@ -89,6 +95,25 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🗄️ MySQL & Database Scripts
+
+All database scripts live in `scripts/db`. Run them from the project root:
+
+1. `./scripts/db/01-setup-mysql.sh` — pull MySQL 8, create the `remix-mysql` container, and initialize a persistent data directory at `.data/mysql`.
+2. `./scripts/db/02-cleanup-database.sh` — stop the container and delete the local data directory (irreversible; prompts for confirmation).
+3. `./scripts/db/03-start-mysql.sh` — start the container and verify it accepts connections.
+4. `./scripts/db/04-stop-mysql.sh` — stop the running container.
+5. `./scripts/db/05-setup-migrations.sh` — scaffold migration tooling and helper scripts (also available in version control).
+6. `./scripts/db/06-create-test-table.sh` — create or reset `test_table` with three sample rows.
+
+Additional helpers:
+- `./scripts/db/run-migrations.sh` runs the Node-based migration runner (checks the container is up first).
+- `npm run db:migrate` applies migrations, while `npm run db:migrate:list` lists available migration files.
+
+Default connection settings (defined in `.env`) align with the Docker scripts: host `127.0.0.1`, port `3306`, database `remix_app`, and credentials `root` / `root`.
 
 ---
 

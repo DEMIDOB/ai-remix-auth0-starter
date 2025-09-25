@@ -3,7 +3,7 @@ import { env } from '~/env.server'
 export type UserAccess = 'admin' | 'cleaner' | 'none'
 
 export async function getUserAccess(email: string): Promise<UserAccess> {
-  const superAdminEmail = env.SUPER_ADMIN_EMAIL || 'root@example.com'
+  const superAdminEmail = env.SUPER_ADMIN_EMAIL || 'admin@example.com'
   if (email === superAdminEmail) return 'admin'
   return 'none'
 }

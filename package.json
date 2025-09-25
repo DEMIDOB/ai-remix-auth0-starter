@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "remix dev",
     "build": "remix build",
-    "start": "node server.js"
+    "start": "node server.js",
+    "db:migrate": "node app/db/migrate.js",
+    "db:migrate:list": "node app/db/migrate.js list"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +20,7 @@
     "@tailwindcss/postcss": "^4.1.10",
     "date-fns": "^4.1.0",
     "express": "^4.21.2",
+    "mysql2": "^3.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "remix-auth": "^4.2.0",
