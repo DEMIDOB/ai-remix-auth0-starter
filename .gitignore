@@ -7,3 +7,4 @@ public/build
 secrets.txt
 **/backups
 **/*.zip
+.data

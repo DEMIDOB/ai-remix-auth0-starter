@@ -4,9 +4,6 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR"
-
 MYSQL_CONTAINER_NAME=${MYSQL_CONTAINER_NAME:-remix-mysql}
 
 if ! docker ps --format '{{.Names}}' | grep -qx "$MYSQL_CONTAINER_NAME"; then

@@ -46,6 +46,7 @@ else
     --name "$MYSQL_CONTAINER_NAME" \
     --restart unless-stopped \
     -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
+    -e MYSQL_DATABASE="$MYSQL_DATABASE" \
     -p "$MYSQL_PORT":3306 \
     -v "$DATA_DIR":/var/lib/mysql \
     "$MYSQL_IMAGE" >/dev/null
@@ -70,10 +71,7 @@ echo "✅ MySQL responded to a simple query."
 
 echo "⚙️  Ensuring database '$MYSQL_DATABASE' and root/root credentials exist..."
 docker exec "$MYSQL_CONTAINER_NAME" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<SQL
-CREATE DATABASE IF NOT EXISTS \
-  \`$MYSQL_DATABASE\` \
-  CHARACTER SET utf8mb4 \
-  COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASSWORD';
