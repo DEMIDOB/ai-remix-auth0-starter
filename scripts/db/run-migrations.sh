@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Helper to run database migrations via Node script.
+# Helper to run database migrations via db-migrate.
 
 set -euo pipefail
 
@@ -13,8 +13,8 @@ if ! docker ps --format '{{.Names}}' | grep -qx "$MYSQL_CONTAINER_NAME"; then
 fi
 
 if [ ! -d "node_modules" ]; then
-  echo "📦 Installing npm dependencies (mysql2 must be available)..."
+  echo "📦 Installing npm dependencies (db-migrate + driver)..."
   npm install
 fi
 
-node app/db/migrate.js "$@"
+npm run db:migrate "$@"

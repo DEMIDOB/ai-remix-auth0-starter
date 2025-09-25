@@ -7,6 +7,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DATA_DIR="$ROOT_DIR/.data/mysql"
+DATA_ROOT="$ROOT_DIR/.data"
 MYSQL_CONTAINER_NAME=${MYSQL_CONTAINER_NAME:-remix-mysql}
 
 cat <<'WARN'
@@ -39,5 +40,11 @@ if [ -d "$DATA_DIR" ]; then
 else
   echo "ℹ️  Data directory $DATA_DIR not found (already removed)."
 fi
+
+if [ -d "$DATA_ROOT" ] && [ "$(ls -A "$DATA_ROOT")" = "" ]; then
+  echo "🧹 Removing empty data root: $DATA_ROOT"
+  rmdir "$DATA_ROOT"
+fi
+
 
 echo "✅ Cleanup completed. Run ./scripts/db/01-setup-mysql.sh to re-create the database."

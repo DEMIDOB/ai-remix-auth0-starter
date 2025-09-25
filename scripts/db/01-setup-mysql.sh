@@ -7,13 +7,27 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DATA_DIR="$ROOT_DIR/.data/mysql"
-mkdir -p "$DATA_DIR"
 
 MYSQL_CONTAINER_NAME=${MYSQL_CONTAINER_NAME:-remix-mysql}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
 MYSQL_DATABASE=${MYSQL_DATABASE:-remix_app}
+MYSQL_APP_USER=${MYSQL_APP_USER:-remix_app}
+MYSQL_APP_PASSWORD=${MYSQL_APP_PASSWORD:-remix_app}
 MYSQL_PORT=${MYSQL_PORT:-3306}
-MYSQL_IMAGE=${MYSQL_IMAGE:-mysql:8}
+MYSQL_IMAGE=${MYSQL_IMAGE:-mysql:8.0.39}
+MYSQL_RESET=${MYSQL_RESET:-0}
+
+if [ "$MYSQL_RESET" = "1" ] && docker ps -a --format '{{.Names}}' | grep -qx "$MYSQL_CONTAINER_NAME"; then
+  echo "♻️  Reset requested - removing existing container '$MYSQL_CONTAINER_NAME'."
+  docker rm -f "$MYSQL_CONTAINER_NAME" >/dev/null 2>&1 || true
+fi
+
+if [ "$MYSQL_RESET" = "1" ]; then
+  echo "🧹 Clearing persisted data in $DATA_DIR"
+  rm -rf "$DATA_DIR"
+fi
+
+mkdir -p "$DATA_DIR"
 
 printf "\n🚀 Setting up MySQL Docker container '%s'...\n" "$MYSQL_CONTAINER_NAME"
 
@@ -47,37 +61,37 @@ else
     --restart unless-stopped \
     -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
     -e MYSQL_DATABASE="$MYSQL_DATABASE" \
+    -e MYSQL_USER="$MYSQL_APP_USER" \
+    -e MYSQL_PASSWORD="$MYSQL_APP_PASSWORD" \
     -p "$MYSQL_PORT":3306 \
     -v "$DATA_DIR":/var/lib/mysql \
-    "$MYSQL_IMAGE" >/dev/null
+    "$MYSQL_IMAGE" --default-authentication-plugin=mysql_native_password >/dev/null
 fi
 
 echo "⏳ Waiting for MySQL to become ready..."
+responded=0
 for attempt in $(seq 1 60); do
   if docker exec "$MYSQL_CONTAINER_NAME" mysql \
     -uroot \
     -p"$MYSQL_ROOT_PASSWORD" \
     -e "SELECT 1" >/dev/null 2>&1; then
+    responded=1
     break
-  fi
-  if [ "$attempt" -eq 60 ]; then
-    echo "❌ MySQL did not become ready in time."
-    exit 1
   fi
   sleep 2
 done
 
+if [ "$responded" -ne 1 ]; then
+  echo "❌ MySQL did not become ready in time. Showing last 50 log lines:"
+  docker logs --tail 50 "$MYSQL_CONTAINER_NAME" || true
+  exit 1
+fi
+
 echo "✅ MySQL responded to a simple query."
 
-echo "⚙️  Ensuring database '$MYSQL_DATABASE' and root/root credentials exist..."
-docker exec "$MYSQL_CONTAINER_NAME" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<SQL
-CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASSWORD';
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASSWORD';
-FLUSH PRIVILEGES;
-SQL
+echo "⚙️  Ensuring database '$MYSQL_DATABASE' exists and app user can connect..."
+docker exec "$MYSQL_CONTAINER_NAME" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" \
+  -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >/dev/null
 
 echo "🔌 Testing external connectivity using mysql client inside the container..."
 if docker exec "$MYSQL_CONTAINER_NAME" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT 'connected' as status;" >/dev/null; then
@@ -86,6 +100,10 @@ else
   echo "❌ Connection test failed even though the server responded earlier."
   exit 1
 fi
+
+echo "👤 Current authentication plugins:"
+docker exec "$MYSQL_CONTAINER_NAME" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" \
+  -e "SELECT user, host, plugin FROM mysql.user WHERE user IN ('root', '$MYSQL_APP_USER') ORDER BY user, host;"
 
 echo
 cat <<INFO
@@ -96,12 +114,12 @@ cat <<INFO
   Host      : 127.0.0.1
   Port      : $MYSQL_PORT
   Database  : $MYSQL_DATABASE
-  Username  : root
-  Password  : $MYSQL_ROOT_PASSWORD
+  App user  : $MYSQL_APP_USER / $MYSQL_APP_PASSWORD
+  Root user : root / $MYSQL_ROOT_PASSWORD
   Data dir  : $DATA_DIR
 
-🔗 Connection string: mysql://root:${MYSQL_ROOT_PASSWORD}@127.0.0.1:${MYSQL_PORT}/${MYSQL_DATABASE}
+🔗 Connection string: mysql://${MYSQL_APP_USER}:${MYSQL_APP_PASSWORD}@127.0.0.1:${MYSQL_PORT}/${MYSQL_DATABASE}
 
 To connect manually from your host machine:
-  docker exec -it $MYSQL_CONTAINER_NAME mysql -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE
+  docker exec -it $MYSQL_CONTAINER_NAME mysql -u$MYSQL_APP_USER -p$MYSQL_APP_PASSWORD $MYSQL_DATABASE
 INFO

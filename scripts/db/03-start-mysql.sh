@@ -7,6 +7,8 @@ set -euo pipefail
 MYSQL_CONTAINER_NAME=${MYSQL_CONTAINER_NAME:-remix-mysql}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
 MYSQL_DATABASE=${MYSQL_DATABASE:-remix_app}
+MYSQL_APP_USER=${MYSQL_APP_USER:-remix_app}
+MYSQL_APP_PASSWORD=${MYSQL_APP_PASSWORD:-remix_app}
 MYSQL_PORT=${MYSQL_PORT:-3306}
 
 echo "🚀 Starting MySQL Docker container..."
@@ -34,10 +36,12 @@ else
 fi
 
 echo "⏳ Verifying MySQL is responding..."
+responded=0
 for attempt in $(seq 1 30); do
   if docker exec "$MYSQL_CONTAINER_NAME" mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT 1" >/dev/null 2>&1; then
     echo "✅ MySQL is accepting connections on port $MYSQL_PORT."
-    exit 0
+    responded=1
+    break
   fi
   if [ "$attempt" -eq 30 ]; then
     echo "❌ MySQL container started but is not responding to queries."
@@ -45,3 +49,10 @@ for attempt in $(seq 1 30); do
   fi
   sleep 2
 done
+
+if [ "$responded" -ne 1 ]; then
+  echo "❌ MySQL container started but did not confirm connectivity."
+  exit 1
+fi
+
+echo "✅ MySQL container is ready."
