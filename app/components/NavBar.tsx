@@ -2,17 +2,12 @@ import { Form } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import pkg from '../../package.json'
 
-type AccessLevel = 'superadmin' | 'admin' | 'cleaner' | 'none'
-
-export function NavBar({
-  user,
-  title = 'Sample Application',
-  access = 'admin'
-}: {
+type NavBarProps = {
   user: { name?: string; email?: string }
   title?: string
-  access?: AccessLevel
-}) {
+}
+
+export function NavBar({ user, title = 'Auth Starter' }: NavBarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -44,11 +39,7 @@ export function NavBar({
         <h1 className="text-4xl font-bold">{title}</h1>
       </div>
 
-      <div className="bg-gray-700 px-6 py-1 flex items-center justify-between border-t border-gray-700">
-        <div className="flex space-x-6 text-sm font-semibold text-gray-300">
-          <span className="uppercase tracking-wide">{access.toUpperCase()}</span>
-        </div>
-
+      <div className="bg-gray-700 px-6 py-1 flex items-center justify-end border-t border-gray-700">
         <div className="relative" ref={dropdownRef}>
           <div
             className="w-7 h-7 bg-indigo-500 rounded-full flex items-center justify-center cursor-pointer"

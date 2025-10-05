@@ -2,12 +2,11 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
 import { Form } from '@remix-run/react'
 import { redirect } from '@remix-run/node'
 import { authenticator, sessionStorage } from '~/services/auth.server'
-import { getLandingPage } from '~/utils/authAccess'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await sessionStorage.getSession(request.headers.get('Cookie'))
   const user = session.get('user')
-  if (user) return redirect('/dashboard')
+  if (user) return redirect('/')
   return null
 }
 
@@ -17,10 +16,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const session = await sessionStorage.getSession(request.headers.get('Cookie'))
     session.set('user', user)
 
-    if (!user.email) throw new Error('User email is missing')
-    const url = await getLandingPage(user.email)
-
-    return redirect(url, {
+    return redirect('/', {
       headers: {
         'Set-Cookie': await sessionStorage.commitSession(session)
       }

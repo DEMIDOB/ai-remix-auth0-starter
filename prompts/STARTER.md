@@ -1,37 +1,27 @@
 # Recommendations Prompt
 
-You are Codex in a Remix + React + TypeScript project that uses MySQL and Auth0. Additional third-party services (e.g., S3, email) may appear later. Maintain a clean separation between browser-safe modules and server-only logic, keep TypeScript strict, and respect Remix conventions.
+You are Codex in a Remix + React + TypeScript project that currently ships as an Auth0 login starter. There is no data layer yet—introduce one only when you need it, keeping server-only modules suffixed with `.server.ts` so Remix can tree-shake correctly.
 
-## Providers
+## Auth & Sessions
 
-- Place domain/data access logic in `app/providers/`. Name files `<Domain>Provider.server.tsx` or `.server.ts` to keep server-only bundles from leaking into the client.
-- Export a top-level `dataProvider` alongside domain-specific exports via `app/providers/index.tsx`.
-- Group supporting code in subfolders: `helpers/`, `mutators/`, `selectors/` with names like `<Domain>Mutators.ts`.
-- Introduce new integrations by creating matching providers and wiring them through the index barrel.
+- Use `requireAuth` in route loaders to gate protected pages.
+- Store only the fields you need from Auth0 in the session; extend the `User` type inside `app/services/auth.server.ts` when you add more data.
+- Logout flows should destroy the session and redirect through Auth0’s logout endpoint.
 
-## Services & Utilities
+## Providers & Services
 
-- Put request/handler orchestration in `app/services/`, always suffixed `.server.ts` (e.g., `<Feature>Handler.server.ts`). These wrap providers for routes or RPC endpoints.
-- Keep pure helpers in `app/utils/`; append `.server.ts` whenever they rely on Node APIs (e.g., `fileUpload.server.ts`). Client-safe utilities remain `.ts`.
-- Store shared UI logic in `app/components/`, custom hooks in `app/hooks/`, and contexts in `app/context/`, mirroring domain naming.
+- When you add data sources, place provider modules under `app/providers/` (e.g., `MyFeatureProvider.server.ts`) and keep them server-only.
+- Wrap provider calls with orchestration logic in `app/services/` to keep routes thin. Prefer names like `<Feature>.server.ts` or `<Feature>Service.server.ts`.
+- Keep pure utilities in `app/utils/` (no `.server` suffix) so they are safe to run in both environments.
 
-## Routes & Config
+## Routes & UI
 
-- Follow Remix routing patterns in `app/routes/` (e.g., `feature.$id.update.tsx`, `feature_.tsx`). Group REST-style endpoints for each resource.
-- Collect runtime configuration in `app/config/` (`server.ts` for ports, `logger.ts` for logging`).
-- Validate environment variables with zod in `app/env.server.ts`, exporting only typed values.
-- Keep custom types and ambient declarations under `app/types/`.
-
-## Database & Migrations
-
-- Use db-migrate with timestamped migration files in `db/` using the pattern `YYYYMMDDHHMMSS-description.js`.
-- Store raw SQL up/down statements in `db/sqls/` with matching filenames (e.g., `20250823023718-initial-up.sql`).
-- Maintain environment-aware settings in `db-migrate-config.json`, sourcing credentials from env vars.
-- Provide npm scripts (e.g., `migrate`) that run db-migrate through dotenv, and keep migrations idempotent.
+- Follow Remix routing conventions in `app/routes/`. Co-locate CSS or shared UI in `app/styles/` and `app/components/`.
+- Tailwind is available globally via `app/styles/tailwind.css`; add new component classes under the `@layer components` section when it saves repetition.
+- Keep React components small and compose them—lift state to loaders/actions instead of client-only effects when possible.
 
 ## Implementation Expectations
 
-- Use TypeScript everywhere; preserve lint/typecheck commands such as `npm run check-all`.
-- Keep server-side polyfill requirements confined to `.server` modules.
-- When adding features, document new providers/services and outline verification steps (tests, typechecks, migrations).
-- Use this structure to scaffold tasks, build new features, and maintain consistency across the codebase.
+- Stick with TypeScript everywhere and keep strict type checking enabled.
+- Validate environment variables close to where they are consumed or introduce a typed env helper if the configuration surface grows.
+- Document notable changes (new routes, providers, background jobs) so teammates know how to test them.

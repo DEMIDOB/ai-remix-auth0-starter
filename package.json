@@ -1,12 +1,10 @@
 {
-  "name": "cleaning-application",
-  "version": "0.1.11",
+  "name": "ai-remix-auth0-starter",
+  "version": "0.2.0",
   "scripts": {
     "dev": "remix dev",
     "build": "remix build",
-    "start": "node server.js",
-    "db:migrate": "db-migrate up --config db-migrate-config.json --env development",
-    "db:migrate:list": "db-migrate --config db-migrate-config.json --env development --count 0"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -18,22 +16,15 @@
     "@remix-run/react": "^2.16.8",
     "@remix-run/serve": "^2.16.8",
     "@tailwindcss/postcss": "^4.1.10",
-    "date-fns": "^4.1.0",
     "express": "^4.21.2",
-    "mysql2": "^3.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "remix-auth": "^4.2.0",
     "remix-auth-auth0": "^2.2.0",
-    "sweetalert2": "^11.22.0",
-    "tailwindcss": "^3.4.17",
-    "zod": "^3.25.64"
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.16.8",
-    "@types/react": "^19.1.8",
-    "db-migrate": "^0.11.13",
-    "db-migrate-mysql": "^2.1.1",
-    "mysql": "2.18.1"
+    "@types/react": "^19.1.8"
   }
 }
