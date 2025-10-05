@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "remix dev",
     "build": "remix build",
-    "start": "node server.js"
+    "start": "node server.js",
+    "db:migrate": "db-migrate up --config db-migrate-config.json --env development",
+    "db:migrate:list": "db-migrate --config db-migrate-config.json --env development --count 0"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +27,9 @@
   },
   "devDependencies": {
     "@remix-run/dev": "^2.16.8",
-    "@types/react": "^19.1.8"
+    "@types/react": "^19.1.8",
+    "db-migrate": "^0.11.13",
+    "db-migrate-mysql": "^2.1.1",
+    "mysql": "2.18.1"
   }
 }

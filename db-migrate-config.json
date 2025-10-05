@@ -1,0 +1,13 @@
+{
+  "defaultEnv": "development",
+  "migrations-dir": "db/migrations",
+  "development": {
+    "driver": "mysql",
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "remix_app",
+    "password": "remix_app",
+    "database": "remix_app",
+    "multipleStatements": true
+  }
+}
